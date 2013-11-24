@@ -1,0 +1,87 @@
+.text
+
+.globl main
+.include "instructions"
+
+
+
+main:
+	jal instructions 
+	
+	la $a0, input
+	la $a1, input
+	li $v0, 8
+	syscall
+	
+	j userInput
+	
+	
+userInput:
+	la $a0, userGuess	#output("Guess the hexadecimal number ")
+	li $v0, 4		#executes the syscall to perform input/output
+	syscall
+	
+	li $v0, 8		#loads system call code
+	la $a0, userHex		#reads the input of the user
+	la $a1, 50	
+	syscall
+
+	
+playAgain:
+	la $a0, runAgain
+	li $v0, 4
+	syscall
+	
+getInput:
+	la $a0, userHex
+	la $a1, userHex
+	li $v0, 8
+	syscall
+	
+	la $a0, userHex
+	lb $t0, 0($a0)
+	beq $t0, '0', exitGameFalse
+	beq $t0, '1', exitGameTrue
+	
+exitGameTrue:
+	addi $v0, $0, 1
+	j main
+	
+exitGameFalse:
+	add $v0, $0, $0
+	li $v0, 10
+	syscall
+
+	
+	
+
+
+
+
+.data
+
+intro1:		.asciiz "\tBULLS AND COWS GAME\n"
+intro2:		.asciiz "\nBulls and Cows is an old code-braking mind\n"
+intro3:		.asciiz "or paper and pencil game for two or more players.\n"
+intro4:		.asciiz "It is a game with numbers or words.\n"
+intro5:		.asciiz "This version of the game is played with 4 digits\n"
+intro6:		.asciiz "hexadecimal number\n"
+intro7:		.asciiz "The programs generates the secret number and you, the\n" 
+intro8:		.asciiz "user will guess the number\n"
+intro9:		.asciiz "   - Bulls are the correct digit in the right position\n"
+intro10:	.asciiz "   - Cows are the correct digit in the wrong position\n"
+intro11:	.asciiz "\n\tRules\n"
+intro12:	.asciiz "- The number your are guessing is a 4 digit hexadecimal number\n"
+intro13:	.asciiz "- Only input digits from 0 to 9\n"
+intro14:	.asciiz "- Only input letters from A to F\n"
+intro15:	.asciiz "\nPress any key to begin\n"
+
+userGuess: .asciiz "Enter a 4 digit hexadecimal number: "
+userHex:
+	.align 2
+	.space 10
+input: .word 0
+
+.align 2
+runAgain: .asciiz "\nDo you want to play again? (1: yes, 0: no)\n"
+
