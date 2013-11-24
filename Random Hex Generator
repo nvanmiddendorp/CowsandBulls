@@ -43,16 +43,15 @@ random4:	li $a1, 16
 		beq $t3, $t2, random4		#go back if $t3 and t2 are equal
 						
 final: 		sll $s0, $s0, 4			#shift left
-		or $s5, $s0, $s1		# Or the value in s0 and s1 and save in s5
-		sll $s5, $s5, 4			#shift left
-		or $s5, $s5, $s2		# or the value in s5 and s2 and save in s5
-		sll $s5, $s5, 4			#shift left
-		or $s5, $s5, $s3		# Or the value in s5 and s3 and save in s5
-		sll $s5, $s5, 4			#shift left
-		or $s5, $s5, $s4		# or the vlaue in s5 and s4 and save in s5
+		or $s0, $s0, $s1		# Or the value in s0 and s1 and save in s0
+		sll $s0, $s0, 4			#shift left
+		or $s0, $s0, $s2		# or the value in s0 and s2 and save in s0
+		sll $s0, $s0, 4			#shift left
+		or $s0, $s0, $s3		# Or the value in s0 and s3 and save in s0
+		sll $s0, $s0, 4			#shift left
+		or $s0, $s0, $s4		# or the vlaue in s0 and s4 and save in s0
 		
-		add $a0, $zero, $s5  		# get the generated 4-digits in a0
+		add $a0, $zero, $s0  		# get the generated 4-digits in a0
 		li $v0, 34			# to print the hex
 		syscall
-		
 		 		
