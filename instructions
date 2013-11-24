@@ -1,0 +1,51 @@
+.text
+
+instructions:
+	la $a0, intro1
+	li $v0, 4
+	syscall
+	
+	la $a0, intro2
+	syscall
+	
+	la $a0, intro3
+	syscall
+	
+	la $a0, intro4
+	syscall
+	
+	la $a0, intro5
+	syscall
+	
+	la $a0, intro6
+	syscall
+	
+	la $a0, intro7
+	syscall
+	
+	la $a0, intro8
+	syscall
+	
+	la $a0, intro9
+	syscall
+	
+	la $a0, intro10
+	syscall
+	
+	la $a0, intro11
+	syscall
+	
+	la $a0, intro12
+	syscall
+	
+	la $a0, intro13
+	syscall
+	
+	la $a0, intro14
+	syscall
+	
+	la $a0, intro15
+	syscall
+	
+	jr $ra
+	
