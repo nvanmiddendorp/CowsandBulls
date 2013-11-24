@@ -1,0 +1,58 @@
+		.data
+
+		.text
+main: 
+
+random1:	li $a1, 16			# set number between 0-15 
+		li $v0, 42			#generating random in twith range
+		syscall				#enerate first digit hex number
+		
+		add $s1, $zero, $a0		#store first digit in $s1
+		add $t0, $zero, $s1		#store number in $t0
+		
+		beq $t0, $zero, random1		#go back if $t0 and $zero are equal
+		
+random2:	li $a1, 16			# number between 0-15 (upper bound in $a1)
+		li $v0, 42			# for generate random int  with range
+		syscall
+		
+		add $s2, $zero, $a0		#store first digit in $s2
+		add $t1, $zero, $s2		#store number in $t1
+		
+		beq $t1, $t0, random2		#go back if $t1 and $t0 are equal
+		
+random3:	li $a1, 16
+		li $v0, 42
+		syscall
+		
+		add $s3, $zero, $a0
+		add $t2, $zero, $s3
+		
+		beq $t2, $t0, random3		#go back if $t2 and t0 are equal
+		beq $t2, $t1, random3		#go back if $t2 and t1 are equal
+		
+random4:	li $a1, 16
+		li $v0, 42
+		syscall
+		
+		add $s4, $zero, $a0
+		add $t3, $zero, $s4
+		
+		beq $t3, $t0, random4		#go back if $t3 and t0 are equal
+		beq $t3, $t1, random4		#go back if $t3 and t1 are equal
+		beq $t3, $t2, random4		#go back if $t3 and t2 are equal
+						
+final: 		sll $s0, $s0, 4			#shift left
+		or $s5, $s0, $s1		# Or the value in s0 and s1 and save in s5
+		sll $s5, $s5, 4			#shift left
+		or $s5, $s5, $s2		# or the value in s5 and s2 and save in s5
+		sll $s5, $s5, 4			#shift left
+		or $s5, $s5, $s3		# Or the value in s5 and s3 and save in s5
+		sll $s5, $s5, 4			#shift left
+		or $s5, $s5, $s4		# or the vlaue in s5 and s4 and save in s5
+		
+		add $a0, $zero, $s5  		# get the generated 4-digits in a0
+		li $v0, 34			# to print the hex
+		syscall
+		
+		 		
