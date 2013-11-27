@@ -1,0 +1,367 @@
+.data
+intro1:         .asciiz "\tBULLS AND COWS GAME\n"
+intro2:         .asciiz "\nBulls and Cows is an old code-braking mind\n"
+intro3:         .asciiz "or paper and pencil game for two or more players.\n"
+intro4:         .asciiz "It is a game with numbers or words.\n"
+intro5:         .asciiz "This version of the game is played with 4 digits\n"
+intro6:         .asciiz "hexadecimal number\n"
+intro7:         .asciiz "The programs generates the secret number and you, the\n"
+intro8:         .asciiz "user will guess the number\n"
+intro9:         .asciiz " - Bulls are the correct digit in the right position\n"
+intro10:        .asciiz " - Cows are the correct digit in the wrong position\n"
+intro11:        .asciiz "\n\tRules\n"
+intro12:        .asciiz "- The number your are guessing is a 4 digit hexadecimal number\n"
+intro13:        .asciiz "- Only input digits from 0 to 9\n"
+intro14:        .asciiz "- Only input letters from A to F\n"
+intro15:        .asciiz "\nPress any key to begin\n"
+userGuess: 	.asciiz "\n Enter a 4 digit hexadecimal number: "
+runAgain: 	.asciiz "\nDo you want to play again? (1: yes, 0: no)\n"
+bullsstring:	.asciiz "Number of bulls that you currently have: "
+cowstring:	.asciiz "\nNumber of cows that you currently have: "
+correct:	.asciiz "\n You won!"
+userHex:
+        	.align 2
+        	.space 10
+input: 		.word  0
+		.align 2
+answer:		.word
+guess:  	.word  
+bullcounter: 	.word
+cowcounter: 	.word
+
+.text
+main:
+jal	generateAnswer			#Jump and link to subroutines that generate the answer
+jal 	instructions			#Jump and link to subroutines that print the instructions
+      
+la 	$a0, input			#This is where the code stops after 'Press any key to continue' and waits for user input
+la	$a1, input
+li 	$v0, 8
+        syscall
+        
+userInput:
+mul	$s6, $s6, $0			#Clear this register in order to ALWAYS have a correclty processed guess and wipe the previous one
+mul	$t7, $s7, $0			#Clear this register to reset the counter for the loop in the label shift
+
+la 	$a0, userGuess        		#output("Guess the hexadecimal number ")
+li 	$v0, 4                		#executes the syscall to perform input/output
+	syscall
+
+li 	$v0, 8               		#loads system call code
+la 	$a0, guess       		#reads the input of the user
+la 	$a1, 50
+        syscall
+           
+mul	$s0, $s0, $0			#Clear this register to ensure the argument is loaded into it correctly
+mul	$t0, $t0, $0			#Clear this register to ensure the bytes of the argument are loaded correctly
+add	$s0, $s0, $a0
+read:
+lb	$t0($s0)			#load the current byte into $t0
+
+blt	$t0, 0x00000040, digit		#if the value of $t0 is less than 0x40, it is a digit between 0-9
+j	letter				#else it's an upper case letter
+
+shift:
+sll	$s6, $s6, 4			#shift our current guess left in order to fit the next byte
+or	$s6, $t0, $s6			#put the current byte into place
+	
+addi	$s0, $s0, 1			#get the next byte
+addi	$t7, $t7, 1			#increment counter
+beq	$t7, 4, continue
+j	read
+
+continue:
+j	compare				#jump to subroutines that compare the guess and answer
+j 	playAgain			#jump to the subroutine that allows us to play the game again
+
+digit:					#this subroutine is the algorithm to convert the ascii value of the current byte to the value input by the user (for digits)
+subu	$t0, $t0, 48
+add	$t0, $t0, 0
+j	shift
+
+letter:					#this subroutine is the algorithm to convert the ascii value of the current byte to the value input by the user (for upper case letters)
+sub	$t0, $t0, 65
+add	$t0, $t0, 10
+j	shift
+     
+        
+playAgain:
+la 	$a0, runAgain
+li	$v0, 4
+        syscall
+        
+getInput:
+la 	$a0, userHex
+la 	$a1, userHex
+li 	$v0, 8
+        syscall
+        
+la 	$a0, userHex
+lb 	$t0, 0($a0)
+beq 	$t0, '0', exitGameFalse
+beq 	$t0, '1', exitGameTrue
+        
+exitGameTrue:
+addi 	$v0, $0, 1
+j 	main
+        
+exitGameFalse:
+add 	$v0, $0, $0
+li 	$v0, 10
+        syscall
+        
+j	finish
+
+generateAnswer:
+random1:        
+li 	$a1, 16                        # set number between 0-15
+li 	$v0, 42                        #generating random in twith range
+	syscall                        #enerate first digit hex number
+                
+add 	$s1, $zero, $a0                #store first digit in $s1
+add 	$t0, $zero, $s1                #store number in $t0
+                
+beq 	$t0, $zero, random1            #go back if $t0 and $zero are equal
+                
+or 	$s0, $s0, $s1                	#or s0 and s1 and store in s0
+sll 	$s0, $s0, 4                     #shift content of s0 to left by 4
+                                                
+random2:        
+li 	$a1, 16                        # number between 0-15 (upper bound in $a1)
+li 	$v0, 42                        # for generate random int with range
+	syscall
+                
+add 	$s1, $zero, $a0                #store first digit in $s2
+add 	$t1, $zero, $s1                #store number in $t1
+                
+beq 	$t1, $t0, random2              #go back if $t1 and $t0 are equal
+                
+or 	$s0, $s0, $s1                  #or s0 and s1 and store in s0
+sll 	$s0, $s0, 4                    #shift the content of s0 to left by 4
+                
+random3:        
+li 	$a1, 16
+li 	$v0, 42
+        syscall
+                
+add 	$s1, $zero, $a0
+add 	$t2, $zero, $s1
+                
+beq 	$t2, $t0, random3              #go back if $t2 and t0 are equal
+beq 	$t2, $t1, random3              #go back if $t2 and t1 are equal
+                
+or 	$s0, $s0, $s1                  #or s0 and s1 and store in s0
+sll 	$s0, $s0, 4                    #shift the content of s0 to left by 4
+                
+random4:       
+li	$a1, 16
+li 	$v0, 42
+	syscall
+                
+add 	$s1, $zero, $a0
+add 	$t3, $zero, $s1
+                
+beq 	$t3, $t0, random4              #go back if $t3 and t0 are equal
+beq 	$t3, $t1, random4              #go back if $t3 and t1 are equal
+beq 	$t3, $t2, random4              #go back if $t3 and t2 are equal
+                
+or 	$s0, $s0, $s1                  #or s0 and s1 and store in s0
+                                                              
+final:                                 
+add 	$a0, $zero, $s0                # get the generated 4-digits in a0
+li 	$v0, 34                        # to print the hex
+	syscall
+
+add	$s7, $a0, $0
+jr	$ra
+                
+instructions:
+la 	$a0, intro1
+li 	$v0, 4
+syscall
+        
+la 	$a0, intro2
+syscall
+        
+la 	$a0, intro3
+syscall
+        
+la	 $a0, intro4
+syscall
+        
+la	 $a0, intro5
+syscall
+        
+la 	$a0, intro6
+syscall
+        
+la 	$a0, intro7
+syscall
+        
+la 	$a0, intro8
+syscall
+        
+la	 $a0, intro9
+syscall
+        
+la 	$a0, intro10
+syscall
+        
+la 	$a0, intro11
+syscall
+        
+la	 $a0, intro12
+syscall
+        
+la 	$a0, intro13
+syscall
+        
+la 	$a0, intro14
+syscall
+        
+la 	$a0, intro15
+syscall
+        
+jr 	$ra
+
+compare:
+bull:
+mul	$t0, $t0, $0			#resets all registers needed by this set of subroutines, mostly counters for loops
+mul	$t1, $t1, $0
+mul	$t2, $t2, $0
+mul	$t3, $t3, $0
+mul	$t5, $t5, $0
+mul	$t6, $t6, $0
+mul	$t7, $t7, $0
+mul	$s0, $s0, $0
+mul	$s1, $s1, $0
+mul	$s2, $s2, $0			#make sure we start with 0 bulls
+mul	$s3, $s3, $0			#make sure we start with 0 cows
+
+xor	$t0, $s7, $s6			#by xor'ing the answer and the guess, the 0's will be bulls ex 0x6020 byte 3 and 1 are correct
+
+and	$t1, $t0, 0x0000F000		#Mask bit 4 
+jal	checkbull
+		
+and	$t1, $t0, 0x00000F00		#Mask bit 3
+jal	checkbull
+
+and	$t1, $t0, 0x000000F0		#Mask bit 2
+jal	checkbull
+
+and	$t1, $t0, 0x0000000F		#Mask bit 1	
+jal	checkbull
+
+add	$t0, $s6, $zero			#store a copy of our guess into t0 so we don't change our guess in memory
+j	cow
+
+checkbull:				#Checks to see if the masked bit is 0, if it is, we branch to addbull
+beq	$t1, $0, addbull
+jr	$ra
+
+addbull:				#Increments bull counter
+addi 	$s2, $s2, 1
+jr	$ra
+
+cow:
+sll	$t0, $t0, 4			#put modified guess into t0, preserve original guess in s1 still
+andi	$t1, $t0, 0x000F0000
+srl	$t1, $t1, 16
+and	$t0, $t0, 0x0000FFFF
+or	$t0, $t0, $t1
+
+xor	$t1, $s7, $t0			#store our temporary xor answer into t1
+
+and	$t2, $t1, 0x0000F000		#mask the bytes and check for cows
+jal	checkcow
+
+and	$t2, $t1, 0x00000F00
+jal	checkcow
+
+and	$t2, $t1, 0x000000F0
+jal	checkcow
+
+and	$t2, $t1, 0x0000000F
+jal	checkcow
+
+addi 	$t7, $t7, 1
+beq	$t7, 3,   showbulls
+j	cow
+
+checkcow:
+beq	$t2, $0, addcow
+jr	$ra
+
+addcow:
+addi	$s3, $s3, 1
+jr	$ra
+
+showbulls:			#Display the number of bulls and cows
+li	$v0, 4
+la	$a0, bullsstring
+syscall
+
+li	$v0, 1
+add	$a0, $s2, $zero
+syscall
+
+jal	playbulls
+
+li	$v0, 4
+la	$a0, cowstring
+syscall
+
+li	$v0, 1
+add	$a0, $s3, $zero
+syscall
+
+jal	playcows
+
+beq	$s2, 4, winner
+j	userInput
+
+playbulls:
+beq	$t5, $s2, done
+li	$v0, 31
+li	$a0, 80
+li	$a1, 500
+li	$a2, 127
+li	$a3, 100
+syscall
+
+li	$v0, 32
+li	$a0, 400
+syscall
+
+addi	$t5, $t5, 1
+j	playbulls
+
+done:
+jr	$ra
+
+playcows:
+beq	$t6, $s3, done2
+li	$v0, 31
+li	$a0, 80
+li	$a1, 500
+li	$a2, 56
+li	$a3, 100
+syscall
+
+li	$v0, 32
+li	$a0, 400
+syscall
+
+addi	$t6, $t6, 1
+j	playcows
+
+done2:
+jr	$ra
+
+winner:
+li	$v0, 4
+la	$a0, correct
+	syscall
+j	playAgain
+
+finish:
